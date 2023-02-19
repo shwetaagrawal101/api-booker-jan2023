@@ -34,13 +34,20 @@ public class CreateBookingTest {
 	@BeforeMethod
 	public void generateToken() {
 		RestAssured.baseURI = "https://restful-booker.herokuapp.com";
-		Response res = RestAssured.given()
-				// .log().all()
+		Response res = RestAssured
+				.given()
+				//.log()
+				//.all()
 				.header("content-Type", "application/json")
 				.body("{\n" + "    \"username\" : \"admin\",\n" + "    \"password\" : \"password123\"\n" + "}").when()
 				.post("/auth");
-		// .then().assertThat().statusCode(200) .log().all() .extract() .response();
-
+				//.then()
+				//.assertThat()
+				//.statusCode(200)
+				//.log()
+				//.all()
+				//.extract()
+				//.response();
 		// System.out.println(res.statusCode());
 		// System.out.println(res.asPrettyString());
 		Assert.assertEquals(res.statusCode(), 200);
@@ -55,17 +62,21 @@ public class CreateBookingTest {
 		bookingdates.setCheckout("2023-05-02");
 
 		payload = new CreateBookingRequest();
-		payload.setFirstname("Darsh");
+		payload.setFirstname("Shweta");
 		payload.setLastname("Agrawal");
 		payload.setTotalprice(155);
 		payload.setDepositpaid(true);
 		payload.setAdditionalneeds("WIFI");
 		payload.setBookingdates(bookingdates);
 
-		Response res = RestAssured.given().headers("Content-Type", "application/json")
-				.headers("Accept", "application/json").body(payload).when()
-				// .log()
-				// .all()
+		Response res = RestAssured
+				.given()
+				.headers("Content-Type", "application/json")
+				.headers("Accept", "application/json")
+				.body(payload)
+				.when()
+				//.log()
+				//.all()
 				.post("/booking");
 		Assert.assertEquals(res.statusCode(), Status_Code.OK);
 		bookingId = res.jsonPath().getInt("bookingid");
@@ -73,32 +84,92 @@ public class CreateBookingTest {
 		// System.out.println(bookingId);
 		// System.out.println(checkIn);
 		// Assert.assertTrue(bookingId > 0);
-		// Assert.assertTrue(Integer.valueOf(res.jsonPath().getInt("bookingid"))
-		// instanceof Integer);
 		validateResponse(res, payload, "booking.");
 	}
 
 	@Test(priority = 2)
 	public void updateBookingIdTest() {
-		// bookingId = 2522;
+		//bookingId = 2522;
 		payload.setFirstname("Shweta");
-		Response res = RestAssured.given().headers("Content-Type", "application/json")
-				.headers("Accept", "application/json").headers("Cookie", "token=" + token).body(payload).when()
-				.log()
-				.all()
-				.put("/booking/" + bookingId);
+		Response res = RestAssured
+				.given()
+				.headers("Content-Type", "application/json")
+				.headers("Accept", "application/json")
+				.headers("Cookie", "token=" + token)
+				.pathParam("bookingId", bookingId)
+				.body(payload)
+				.when()
+				//.log()
+				//.all()
+				.put("/booking/{bookingId}");
 		Assert.assertEquals(res.getStatusCode(), Status_Code.OK);
 		// System.out.println(res.asPrettyString());
 		CreateBookingRequest responseBody = res.as(CreateBookingRequest.class);
 		Assert.assertTrue(responseBody.equals(payload));
 	}
-
+	
+	@Test(priority = 3)
+	public void partialUpdateBookingIdTest() {
+		Response res = RestAssured
+				.given()
+				.headers("Content-Type", "application/json")
+				.headers("Accept", "application/json")
+				.headers("Cookie", "token=" + token)
+				.pathParam("bookingId", bookingId)
+				.body("{\r\n"
+						+ "    \"firstname\" : \"Sweety\",\r\n"
+						+ "    \"lastname\" : \"Jain\"\r\n"
+						+ "}")
+				.when()
+				//.log()
+				//.all()
+				.patch("/booking/{bookingId}");
+		Assert.assertEquals(res.getStatusCode(), Status_Code.OK);
+		//System.out.println(res.asPrettyString());
+		Assert.assertEquals(res.jsonPath().getString("firstname"), "Sweety");
+		Assert.assertEquals(res.jsonPath().getString("lastname"), "Jain");
+	}
+	
+	@Test(priority = 4)
+	public void deleteBookingTest() {
+		Response res = RestAssured
+				.given()
+				.headers("Content-Type", "application/json")
+				.headers("Cookie", "token=" + token)
+				.pathParam("bookingId", bookingId)
+				.when()
+				//.log()
+				//.all()
+				.delete("/booking/{bookingId}");
+		Assert.assertEquals(res.getStatusCode(), Status_Code.CREATED);
+		//System.out.println(res.asPrettyString());
+	}
+	
+	@Test(priority = 5)
+	public void validateBookingIdAfterDeleteBooking() {
+		Response res = RestAssured
+				.given()
+				.headers("Content-Type", "application/json")
+				.headers("Cookie", "token=" + token)
+				.when()
+				//.log()
+				//.all()
+				.get("/booking");
+		Assert.assertEquals(res.getStatusCode(), Status_Code.OK);
+		List<Integer> listOfAllBookingIds = res.jsonPath().getList("bookingid");
+		//System.out.println(listOfAllBookingIds);
+		Assert.assertFalse(listOfAllBookingIds.contains(bookingId));
+		//System.out.println(res.asPrettyString());
+	}	
 	
 	@Test(priority = 2, enabled = false)
 	public void getBookingIdTest() {
-		Response res = RestAssured.given().headers("Accept", "application/json").when()
-				// .log()
-				// .all()
+		Response res = RestAssured
+				.given()
+				.headers("Accept", "application/json")
+				.when()
+				//.log()
+				//.all()
 				.get("/booking/" + bookingId);
 		Assert.assertEquals(res.getStatusCode(), Status_Code.OK);
 		// System.out.println(res.asPrettyString());
@@ -108,9 +179,12 @@ public class CreateBookingTest {
 	@Test(priority = 3, enabled = false)
 	public void getBookingIdDeserializedTest() {
 		// bookingId = 2522;
-		Response res = RestAssured.given().headers("Accept", "application/json").when()
-				// .log()
-				// .all()
+		Response res = RestAssured
+				.given()
+				.headers("Accept", "application/json")
+				.when()
+				//.log()
+				//.all()
 				.get("/booking/" + bookingId);
 		Assert.assertEquals(res.getStatusCode(), Status_Code.OK);
 		// System.out.println(res.asPrettyString());
@@ -120,13 +194,18 @@ public class CreateBookingTest {
 
 	@Test(enabled = false)
 	public void createBookingTest() {
-		Response res = RestAssured.given().log().all().headers("Content-Type", "application/json")
+		Response res = RestAssured
+				.given()
+				//.log()
+				//.all()
+				.headers("Content-Type", "application/json")
 				.headers("Accept", "application/json")
 				.body("{\n" + "    \"firstname\" : \"Jim\",\n" + "    \"lastname\" : \"Brown\",\n"
 						+ "    \"totalprice\" : 111,\n" + "    \"depositpaid\" : true,\n" + "    \"bookingdates\" : {\n"
 						+ "        \"checkin\" : \"2018-01-01\",\n" + "        \"checkout\" : \"2019-01-01\"\n"
 						+ "    },\n" + "    \"additionalneeds\" : \"Breakfast\"\n" + "}")
-				.when().post("/booking");
+				.when()
+				.post("/booking");
 		System.out.println(res.statusCode());
 		System.out.println(res.statusLine());
 		Assert.assertEquals(res.getStatusCode(), Status_Code.OK);
@@ -160,8 +239,15 @@ public class CreateBookingTest {
 		payload.setAdditionalneeds("breakfast");
 		payload.setBookingdates(bookingdates);
 
-		Response res = RestAssured.given().headers("Content-Type", "application/json")
-				.headers("Accept", "application/json").body(payload).log().all().when().post("/booking");
+		Response res = RestAssured
+				.given()
+				.headers("Content-Type", "application/json")
+				.headers("Accept", "application/json")
+				.body(payload)
+				//.log()
+				//.all()
+				.when()
+				.post("/booking");
 		Assert.assertEquals(res.getStatusCode(), Status_Code.OK);
 		int bookingId = res.jsonPath().getInt("bookingid");
 		Assert.assertTrue(bookingId > 0);
@@ -171,7 +257,13 @@ public class CreateBookingTest {
 	@Test(priority = 1, enabled = false)
 	public void getAllBookingIdsTest() {
 
-		Response res = RestAssured.given().headers("Accept", "application/json").when().log().all().get("/booking");
+		Response res = RestAssured
+				.given()
+				.headers("Accept", "application/json")
+				.when()
+				//.log()
+				//.all()
+				.get("/booking");
 		Assert.assertEquals(res.getStatusCode(), Status_Code.OK);
 		List<Integer> listOfBookingIds = res.jsonPath().getList("bookingid");
 		System.out.println(listOfBookingIds.size());
